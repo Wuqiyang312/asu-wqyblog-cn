@@ -1,117 +1,91 @@
-# Attendedsysupgrade Server (GSoC 2017)
+# openwrt的asu 的修改版本
 
-[![codecov](https://codecov.io/gh/aparcar/asu/branch/master/graph/badge.svg)](https://codecov.io/gh/aparcar/asu)
-[![PyPi](https://badge.fury.io/py/asu.svg)](https://badge.fury.io/py/asu)
+[官方asu](https://github.com/openwrt/asu)
 
-This project simplifies the sysupgrade process for upgrading the firmware of
-devices running OpenWrt or distributions based on it. These tools offer an easy
-way to reflash the router with a new firmware version
-(including all packages) without the need to use `opkg`.
-
-ASU is based on an [API](#api) to request custom firmware images with any
-selection of packages pre-installed. This avoids the need to set up a build
-environment, and makes it possible to create a custom firmware image even using
-a mobile device.
-
-## Clients of the Sysupgrade Server
-
-### OpenWrt Firmware Selector
-
-Simple web interface using vanilla JavaScript currently developed by @mwarning.
-It offers a device search based on model names and show links either to
-[official images](https://downloads.openwrt.org/) or requests images via the
-_asu_ API. Please join in the development at
-[GitLab repository](https://gitlab.com/openwrt/web/firmware-selector-openwrt-org)
-
-* https://firmware-selector.openwrt.org
-
-![ofs](misc/ofs.png)
-
-### LuCI app
-
-The package
-[`luci-app-attendedsysupgrade`](https://github.com/openwrt/luci/tree/master/applications/luci-app-attendedsysupgrade)
-offers a simple tool under `System > Attended Sysupgrade`. It requests a new
-firmware image that includes the current set of packages, waits until it's built
-and flashes it. If "Keep Configuration" is checked in the GUI, the device
-upgrades to the new firmware without any need to re-enter any configuration or
-re-install any packages.
-
-![luci](misc/luci.png)
-
-### CLI
-
-The [`auc`](https://github.com/openwrt/packages/tree/master/utils/auc) package
-performs the same process as the `luci-app-attendedsysupgrade`
-from SSH/the command line.
-
-![auc](misc/auc.png)
-
-## Server
-
-The server listens for image requests and, if valid, automatically generates
-them. It coordinates several OpenWrt ImageBuilders and caches the resulting
-images in a Redis database. If an image is cached, the server can provide it
-immediately without rebuilding.
-
-### Active server
+## 官方版本正提供服务的服务器
 
 - [sysupgrade.openwrt.org](https://sysupgrade.openwrt.org)
 - [asu.aparcar.org](http://asu.aparcar.org:8000)
 - [asu.hauke-m.de](http://asu.hauke-m.de:8000)
 
-## Run your own server
+## 快速执行服务的服务器
 
-For security reasons each build happens inside a container so that one build
-can't affect another build. For this to work a Podman container runs an API
-service so workers can themselfs execute builds inside containers.
+出于安全原因，每个构建都发生在容器内，以便一个构建不会影响另一个构建。为此，Podman 容器运行 API 服务，以便工作人员可以自己在容器内执行构建。
 
-Please install Podman and test if it works:
+### 安装 Podman
 
-    podman run --rm -it docker.io/library/alpine:latest
+debain/ubuntu:
+```bash
+sudo apt update
+# 必要环境
+sudo apt install podman
+```
 
-Once Podman works, install `podman-compose`:
+### 启动服务
 
-    pip install podman-compose
+```bash
+# 获取
+git clone https://github.com/Wuqiyang312/asu-wqyblog-cn.git
+cd asu-wqyblog-cn
+# 创建虚拟环境
+python3 -m venv venv
+source venv/bin/activate
+# 安装 podman-compose
+pip install podman-compose
+export PUBLIC_PATH=$(pwd)/public
+# 安装到工作容器中的 podman 套接字的绝对路径
+export CONTAINER_SOCK=/run/user/1001/podman/podman.sock
+podman-compose up -d
+```
 
-Now it's possible to run all services via `podman-compose`:
+### 生产
 
-    # where to store images and json files
-    export PUBLIC_PATH=$(pwd)/public
-    # absolute path to podman socket mounted into worker containers
-    export CONTAINER_SOCK=/run/user/1001/podman/podman.sock
-    podman-compose up -d
+对于生产，建议使用反向代理，例如 "nginx" 或 "caddy"。
 
-This will start the server, the Podman API container and two workers. The first
-run needs a few minutes since available packages are parsed from the upstream
-server. Once the server is running, it's possible to request images via the API
-on `http://localhost:8000`. Modify `podman-compose.yml` to change the port.
-
-### Production
-
-For production it's recommended to use a reverse proxy like `nginx` or `caddy`.
-
-#### System requirements
+#### 系统最低配置
 
 - 2 GB RAM (4 GB recommended)
 - 2 CPU cores (4 cores recommended)
 - 50 GB disk space (200 GB recommended)
   
-### Development
+### 开发环境
 
-After cloning this repository, create a Python virtual environment and install
-the dependencies:
+#### 安装 Podman 和 可能需要的环境:
 
-#### Running the server
+debain/ubuntu:
+```bash
+sudo apt update
+# 必要环境
+sudo apt install podman 
+# 可能需要的环境 用于二次开发
+sudo apt install pythom3 python3-pip python3-venv
+```
 
-    poetry install
-    poetry run flask run
+#### 运行服务器
 
-#### Running a worker
+ > **提示**: 别忘了启动 redis
 
-    # podman unix socket (not path), no need to mount anything
-    export CONTAINER_HOST=unix:///run/user/1001/podman/podman.sock
-    poetry run rq worker
+```bash
+# 获取
+git clone https://github.com/Wuqiyang312/asu-wqyblog-cn.git
+cd asu-wqyblog-cn
+# 创建虚拟环境
+python3 -m venv venv
+source venv/bin/activate
+# 安装 poetry podman-compose
+pip install poetry podman-compose
+poetry install
+poetry run flask run
+```
+
+#### 运行worker
+
+```bash
+# 安装到工作容器中的 podman 套接字的绝对路径
+export CONTAINER_HOST=unix:///run/user/1001/podman/podman.sock
+poetry run rq worker
+```
+
 ### API
 
 The API is documented via _OpenAPI_ and can be viewed interactively on the

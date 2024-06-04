@@ -51,8 +51,6 @@ def is_modified(config, url: str) -> bool:
 
     if modified_local:
         if modified_local == modified_remote:
-            return False
-
     if modified_remote:
         r.hset(
             "last-modified",
@@ -377,6 +375,7 @@ def update_targets(config: dict, version):
     pipeline.delete(f"targets:{branch['name']}")
     pipeline.hset(f"targets:{branch['name']}", mapping=targets)
     pipeline.execute()
+    return targets
 
 
 def update_profiles(config, version: str, target: str) -> str:

@@ -5,7 +5,7 @@ TESTING = False
 DEBUG = False
 
 # where to find the ImageBuildes
-UPSTREAM_URL = "https://downloads.openwrt.org"
+UPSTREAM_URL = "https://mirrors.tuna.tsinghua.edu.cn/openwrt"
 
 # where to store created images
 STORE_PATH = Path.cwd() / "public/store/"
@@ -21,14 +21,14 @@ MAPPING_ABI = {"libubus20191227": "libubus"}
 
 # External repositories to allow
 REPOSITORY_ALLOW_LIST = [
-    "http://downloads.openwrt.org",
-    "https://downloads.openwrt.org",
-    "http://feed.libremesh.org",
-    "https://feed.libremesh.org",
+    "https://mirrors.tuna.tsinghua.edu.cn/openwrt",
+    "http://mirrors.tuna.tsinghua.edu.cn/openwrt",
+    "https://mirror.nju.edu.cn/openwrt",
+    "http://mirror.nju.edu.cn/openwrt",
 ]
 
 # connection string for Redis
-# REDIS_URL = "redis://localhost:6379"
+REDIS_URL = "redis://localhost:6379"
 
 # run jobs in worker processes or on the server (for testing)
 # ASYNC_QUEUE = True
@@ -43,7 +43,7 @@ REPOSITORY_ALLOW_LIST = [
 # BRANCHES_FILE = "./branches.yml"
 
 # where to downlaod the images from
-# UPSTREAM_PATH = "https://downloads.openwrt.org"
+UPSTREAM_PATH = "https://mirror.nju.edu.cn/openwrt"
 
 # token used to trigger an update of targets
 # if an empty string is set, the update happens periodically
