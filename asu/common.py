@@ -51,6 +51,8 @@ def is_modified(config, url: str) -> bool:
 
     if modified_local:
         if modified_local == modified_remote:
+            return False
+            
     if modified_remote:
         r.hset(
             "last-modified",
